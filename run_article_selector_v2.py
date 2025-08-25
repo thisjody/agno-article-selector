@@ -270,7 +270,7 @@ async def main_async(args):
     print(f"   • Checkpointing: {'Enabled' if not args.no_checkpoint else 'Disabled'}")
     
     workflow = get_article_selection_workflow_v2(
-        user_id=settings.user_id or "default",
+        user_id="default",
         session_id=datetime.now().strftime("%Y%m%d_%H%M%S"),
         debug_mode=args.debug,
         max_parallel_workers=1 if args.no_parallel else args.parallel_workers,
@@ -321,13 +321,13 @@ async def main_async(args):
                 'selection_reasoning': article.get('comparative_rationales', [''])[0] if article.get('comparative_rationales') else f"Ranked #{idx}",
             })
         
-        display = formatter.format_selection_results(
+        formatter.display_selection_results(
             selected_articles=selected_for_display,
-            statistics=results["statistics"],
-            batch_id=workflow.state.run_id if workflow.state else datetime.now().strftime("%Y%m%d_%H%M%S"),
+            batch_id=workflow.state.run_id if hasattr(workflow, 'state') and workflow.state else datetime.now().strftime("%Y%m%d_%H%M%S"),
+            total_processed=results["statistics"].get("total_input", 0),
+            total_relevant=results["statistics"].get("first_pass_relevant", 0),
+            show_details=True
         )
-        
-        print(display)
         
         # Export to JSON if requested
         if not args.no_export:
@@ -378,7 +378,7 @@ async def main_async(args):
                     article_id=article.get('id'),
                     selection_reason=article.get('selection_reasoning', ''),
                     score=article.get('overall_score', 0),
-                    batch_id=workflow.state.run_id if workflow.state else None,
+                    batch_id=workflow.state.run_id if hasattr(workflow, 'state') and workflow.state else None,
                 )
             print(f"💾 Saved {len(results['selected_articles'])} selections to database")
         except Exception as e:

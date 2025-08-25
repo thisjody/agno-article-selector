@@ -13,7 +13,6 @@ import random
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
 
-from agno.workflow.v2 import Step, Workflow
 from agno.models.message import Message
 
 from projects.article_selector.agents import (
@@ -22,12 +21,7 @@ from projects.article_selector.agents import (
     get_selector_agent,
     get_comparative_ranker_agent,
 )
-from projects.article_selector.models import (
-    Article,
-    FirstPassResult,
-    ScoringResult,
-    ComparativeRankingResult,
-)
+from projects.article_selector.models import Article
 from core.response_tracker import ResponseTracker
 from core.settings import settings
 
@@ -160,42 +154,42 @@ class ArticleSelectionWorkflowV2:
         agent.run = with_retry(original_run)
         return agent
     
-    def _create_workflow(self) -> Workflow:
-        """Create the AGNO V2 workflow with all 4 phases."""
-        return Workflow(
-            name="Article Selection Pipeline V2",
-            description="Production-ready article selection with error handling and parallelism",
-            steps=[
-                Step(
-                    name="First Pass Filtering",
-                    agent=self.first_pass_agent,
-                    description="Filter articles for relevance (parallelized)",
-                    transform_input=self._transform_for_first_pass,
-                    transform_output=self._transform_first_pass_output,
-                ),
-                Step(
-                    name="Article Scoring",
-                    agent=self.scoring_agent,
-                    description="Score relevant articles (parallelized)",
-                    transform_input=self._transform_for_scoring,
-                    transform_output=self._transform_scoring_output,
-                ),
-                Step(
-                    name="Comparative Ranking",
-                    agent=self.comparative_ranker_agent,
-                    description="Rank articles in batches with multiple passes",
-                    transform_input=self._transform_for_ranking,
-                    transform_output=self._transform_ranking_output,
-                ),
-                Step(
-                    name="Final Selection",
-                    agent=self.selector_agent,
-                    description="Select top articles with diversity",
-                    transform_input=self._transform_for_selection,
-                    transform_output=self._transform_selection_output,
-                ),
+    def _create_workflow(self) -> Dict:
+        """Create the workflow metadata with all 4 phases."""
+        return {
+            "name": "Article Selection Pipeline V2",
+            "description": "Production-ready article selection with error handling and parallelism",
+            "steps": [
+                {
+                    "name": "First Pass Filtering",
+                    "agent": self.first_pass_agent,
+                    "description": "Filter articles for relevance (parallelized)",
+                    "transform_input": self._transform_for_first_pass,
+                    "transform_output": self._transform_first_pass_output,
+                },
+                {
+                    "name": "Article Scoring",
+                    "agent": self.scoring_agent,
+                    "description": "Score relevant articles (parallelized)",
+                    "transform_input": self._transform_for_scoring,
+                    "transform_output": self._transform_scoring_output,
+                },
+                {
+                    "name": "Comparative Ranking",
+                    "agent": self.comparative_ranker_agent,
+                    "description": "Rank articles in batches with multiple passes",
+                    "transform_input": self._transform_for_ranking,
+                    "transform_output": self._transform_ranking_output,
+                },
+                {
+                    "name": "Final Selection",
+                    "agent": self.selector_agent,
+                    "description": "Select top articles with diversity",
+                    "transform_input": self._transform_for_selection,
+                    "transform_output": self._transform_selection_output,
+                },
             ],
-        )
+        }
     
     # Transform functions for each step
     

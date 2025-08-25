@@ -2,7 +2,7 @@
 
 from typing import Optional, List, Dict, Any
 from datetime import datetime
-from agno.workflow.v2 import Step, Workflow
+# Note: agno.workflow.Workflow is not used - we directly orchestrate agents
 from projects.article_selector.agents import (
     get_first_pass_agent,
     get_scoring_agent,
@@ -54,7 +54,7 @@ def get_article_selection_workflow(
     user_id: str = "default",
     session_id: str = "default",
     debug_mode: bool = False,
-) -> Workflow:
+) -> Dict:
     """Create the article selection workflow.
     
     This workflow orchestrates three agents:
@@ -92,27 +92,15 @@ def get_article_selection_workflow(
     )
     
     # Define workflow steps
-    return Workflow(
-        name="Article Selection Pipeline",
-        description="Multi-stage article selection for open source security newsletter",
-        steps=[
-            Step(
-                name="First Pass Filtering",
-                agent=first_pass,
-                description="Filter articles for open source security relevance",
-            ),
-            Step(
-                name="Article Scoring",
-                agent=scoring,
-                description="Score relevant articles on quality and impact",
-            ),
-            Step(
-                name="Final Selection",
-                agent=selector,
-                description="Select and rank the best articles for the newsletter",
-            ),
-        ],
-    )
+    return {
+        "name": "Article Selection Pipeline",
+        "description": "Multi-stage article selection for open source security newsletter",
+        "agents": {
+            "first_pass": first_pass,
+            "scoring": scoring,
+            "selector": selector,
+        }
+    }
 
 
 def process_articles(
