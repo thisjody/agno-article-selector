@@ -10,9 +10,6 @@ from projects.article_selector.agents import (
 )
 from projects.article_selector.models import (
     Article,
-    ArticleSelectionInput,
-    ArticleSelectionOutput,
-    RankedArticle,
     FirstPassResult,
     ScoringResult,
 )
@@ -124,7 +121,7 @@ def process_articles(
     user_id: str = "default",
     session_id: str = "default",
     debug_mode: bool = False,
-) -> ArticleSelectionOutput:
+) -> Dict[str, Any]:
     """Process articles through the selection workflow.
     
     This is a convenience function that runs the workflow with proper data transformation
@@ -155,12 +152,12 @@ def process_articles(
     
     # For now, return a placeholder
     # This would be replaced with actual workflow execution
-    return ArticleSelectionOutput(
-        selected_articles=[],
-        statistics={
+    return {
+        "selected_articles": [],
+        "statistics": {
             "total_input": len(articles),
             "total_selected": 0,
             "processing_time": (datetime.now() - start_time).total_seconds(),
         },
-        processing_time=(datetime.now() - start_time).total_seconds(),
-    )
+        "processing_time": (datetime.now() - start_time).total_seconds(),
+    }
